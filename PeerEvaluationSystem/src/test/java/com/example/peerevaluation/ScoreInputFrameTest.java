@@ -3,25 +3,26 @@ package com.example.peerevaluation;
 import java.util.HashMap;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+
+//[Driver: hz24472]
 import javax.swing.*;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import java.awt.Component;
-
+//[Navigator: zz23120]
 public class ScoreInputFrameTest {
     private HashMap<String, String> studentMap;
-    private ScoreInputFrame frame;
+    private com.example.peerevaluation.ScoreInputFrame frame;
 
     @Before
     public void setUp() {
         studentMap = new HashMap<>();
         studentMap.put("001", "Hanqi");
         studentMap.put("002", "Zhou");
-        frame = new ScoreInputFrame(studentMap);
+        frame = new com.example.peerevaluation.ScoreInputFrame(studentMap);
     }
 
-    // Existing initialization tests
     @Test
     public void testScoresMapInitialization() {
         assertNotNull(frame.getScoresMap());
@@ -31,39 +32,12 @@ public class ScoreInputFrameTest {
     @Test
     public void testTableInitialization() {
         JTable table = getTableFromFrame();
+
         assertNotNull(table);
         assertEquals("Hanqi", table.getValueAt(0, 0));
         assertEquals("Zhou", table.getValueAt(0, 1));
     }
 
-    // New zero sum button tests
-    //(Driver : kr21130)
-    //(Navigator : ka22205)
-    @Test
-    public void testZeroSumButtonExists() {
-        JPanel panel = (JPanel) frame.getContentPane().getComponent(0);
-        JButton zeroSumButton = findZeroSumButton(panel);
-        assertNotNull("Zero Sum button should exist in the frame", zeroSumButton);
-        assertTrue("Zero Sum button should be enabled", zeroSumButton.isEnabled());
-        assertEquals("Button should have correct text", "Check Zero Sum", zeroSumButton.getText());
-    }
-
-    //(Driver : kr21130)
-    //(Navigator : hz24472)
-    @Test
-    public void testZeroSumButtonClick() {
-        JPanel panel = (JPanel) frame.getContentPane().getComponent(0);
-        JButton zeroSumButton = findZeroSumButton(panel);
-        assertNotNull("Zero Sum button should exist", zeroSumButton);
-
-        // Simulate button click
-        simulateZeroSumButton(zeroSumButton);
-
-        // The button click should not cause any exceptions
-        assertTrue("Frame should remain visible after button click", frame.isVisible());
-    }
-
-    // Existing test methods
     @Test
     public void testValidScoreInput() {
         JTable table = getTableFromFrame();
@@ -106,12 +80,26 @@ public class ScoreInputFrameTest {
         table.setValueAt("2.123", 0, 5);
         table.setValueAt("4.124355", 0, 6);
 
+
         simulateSubmitButton();
 
         assertTrue(frame.getScoresMap().isEmpty());
     }
 
-    // Existing calculation tests
+    private JTable getTableFromFrame() {
+        JPanel panel = (JPanel) frame.getContentPane().getComponent(0);
+        JScrollPane scrollPane = (JScrollPane) panel.getComponent(0);
+        return (JTable) scrollPane.getViewport().getView();
+    }
+
+    private void simulateSubmitButton() {
+        JPanel panel = (JPanel) frame.getContentPane().getComponent(0);
+        JButton submitButton = (JButton) panel.getComponent(1);
+        for (ActionListener listener : submitButton.getActionListeners()) {
+            listener.actionPerformed(new ActionEvent(submitButton, ActionEvent.ACTION_PERFORMED, null));
+        }
+    }
+
     @Test
     public void testCalculateGrandAverageScores() {
         frame.getScoresMap().put("Alice", new HashMap<>());
@@ -126,9 +114,9 @@ public class ScoreInputFrameTest {
 
         System.out.println("Grand Averages: " + grandAverages);
 
-        assertEquals(85.0, grandAverages.get("Alice"), 0.01);
-        assertEquals(85.0, grandAverages.get("Bob"), 0.01);
-        assertEquals(80.0, grandAverages.get("Charlie"), 0.01);
+        assertEquals(85.0, grandAverages.get("Alice"), 0.01);   // Alice's grand average
+        assertEquals(85.0, grandAverages.get("Bob"), 0.01);     // Bob's grand average
+        assertEquals(80.0, grandAverages.get("Charlie"), 0.01); // Charlie's grand average
     }
 
     @Test
@@ -147,46 +135,8 @@ public class ScoreInputFrameTest {
 
         System.out.println("Peer Marks: " + peerMarks);
 
-        assertEquals(170.0, peerMarks.get("Alice"), 0.01);
-        assertEquals(170.0, peerMarks.get("Bob"), 0.01);
-        assertEquals(160.0, peerMarks.get("Charlie"), 0.01);
-    }
-
-    // Helper methods
-    //(Driver : kr21130)
-    //(Navigator : hz24472)
-    private JTable getTableFromFrame() {
-        JPanel panel = (JPanel) frame.getContentPane().getComponent(0);
-        JScrollPane scrollPane = (JScrollPane) panel.getComponent(0);
-        return (JTable) scrollPane.getViewport().getView();
-    }
-    //(Driver : kr21130)
-    //(Navigator : hz24472)
-    private void simulateSubmitButton() {
-        JPanel panel = (JPanel) frame.getContentPane().getComponent(0);
-        JButton submitButton = (JButton) panel.getComponent(1);
-        for (ActionListener listener : submitButton.getActionListeners()) {
-            listener.actionPerformed(new ActionEvent(submitButton, ActionEvent.ACTION_PERFORMED, null));
-        }
-    }
-    //(Driver : kr21130)
-    //(Navigator : cl24929)
-    private JButton findZeroSumButton(JPanel panel) {
-        for (Component comp : panel.getComponents()) {
-            if (comp instanceof JButton) {
-                JButton button = (JButton) comp;
-                if ("Check Zero Sum".equals(button.getText())) {
-                    return button;
-                }
-            }
-        }
-        return null;
-    }
-
-    private void simulateZeroSumButton(JButton button) {
-        assertNotNull("Zero Sum button should not be null", button);
-        for (ActionListener listener : button.getActionListeners()) {
-            listener.actionPerformed(new ActionEvent(button, ActionEvent.ACTION_PERFORMED, "checkZeroSum"));
-        }
+        assertEquals(170.0, peerMarks.get("Alice"), 0.01);   // Alice's peer mark
+        assertEquals(170.0, peerMarks.get("Bob"), 0.01);     // Bob's peer mark
+        assertEquals(160.0, peerMarks.get("Charlie"), 0.01); // Charlie's peer mark
     }
 }

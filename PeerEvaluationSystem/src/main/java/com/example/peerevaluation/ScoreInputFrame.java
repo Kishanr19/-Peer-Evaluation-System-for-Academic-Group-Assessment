@@ -15,8 +15,6 @@ import java.io.IOException;
 //[Navigator: zz23120]
 public class ScoreInputFrame extends JFrame {
     private HashMap<String, HashMap<String, double[]>> scoresMap = new HashMap<>();
-
-
     private String[] criteria = {
             "Participated in group discussions or meetings",
             "Helped keep the group focused on the task",
@@ -86,7 +84,7 @@ public class ScoreInputFrame extends JFrame {
                                 return;
                             }
                         } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(null, "Invalid input at row " + (row + 1) + ", column " + (i + 3));
+                            JOptionPane.showMessageDialog(null, "Invalid input at row " + (row + 1)+", column " + (i + 3));
                             return;
                         }
                     }
@@ -98,37 +96,62 @@ public class ScoreInputFrame extends JFrame {
             }
         });
 
+        //[Driver: ka22205]
+        //[Navigator: ep20200]
         JButton calculateAverageButton = new JButton("Calculate Grand Average Score");
         calculateAverageButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (scoresMap.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Please submit scores first!");
-                    return;
-                }
+                HashMap<String, Double> studentAverageScores = new HashMap<>();
+                HashMap<String, Integer> scoreCounts = new HashMap<>();
 
-                HashMap<String, Double> averages = calculateGrandAverageScores();
+                for (String fromStudent : scoresMap.keySet()) {
+                    HashMap<String, double[]> toMap = scoresMap.get(fromStudent);
+                    for (String toStudent : toMap.keySet()) {
+                        double[] scores = toMap.get(toStudent);
+                        double totalScore = 0;
+
+                        for (double score : scores) {
+                            totalScore += score;
+                        }
+
+                        studentAverageScores.put(toStudent, studentAverageScores.getOrDefault(toStudent, 0.0) + totalScore);
+                        scoreCounts.put(toStudent, scoreCounts.getOrDefault(toStudent, 0) + scores.length);
+                    }
+                }
 
                 StringBuilder result = new StringBuilder("Grand Average Scores:\n");
-                for (String student : averages.keySet()) {
-                    result.append(student)
-                            .append(": ")
-                            .append(String.format("%.2f", averages.get(student)))
-                            .append("\n");
+                for (String student : studentAverageScores.keySet()) {
+                    double average = studentAverageScores.get(student) / scoreCounts.get(student);
+                    result.append(student).append(": ").append(String.format("%.2f", average)).append("\n");
                 }
 
-                JOptionPane.showMessageDialog(null, result.toString(),
-                        "Grand Average Scores", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, result.toString(), "Grand Average Scores", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
+        //[Driver: ka22205]
+        //[Navigator: ep20200]
         JButton calculatePeerMarkButton = new JButton("Calculate Peer Mark");
         calculatePeerMarkButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (scoresMap.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Please submit scores first!");
-                    return;
+                HashMap<String, Double> studentAverageScores = new HashMap<>();
+                HashMap<String, Integer> scoreCounts = new HashMap<>();
+
+                for (String fromStudent : scoresMap.keySet()) {
+                    HashMap<String, double[]> toMap = scoresMap.get(fromStudent);
+                    for (String toStudent : toMap.keySet()) {
+                        double[] scores = toMap.get(toStudent);
+                        double totalScore = 0;
+
+                        for (double score : scores) {
+                            totalScore += score;
+                        }
+
+                        studentAverageScores.put(toStudent, studentAverageScores.getOrDefault(toStudent, 0.0) + totalScore);
+                        scoreCounts.put(toStudent, scoreCounts.getOrDefault(toStudent, 0) + scores.length);
+                    }
                 }
 
                 String multiplierInput = JOptionPane.showInputDialog(
@@ -145,36 +168,19 @@ public class ScoreInputFrame extends JFrame {
 
                 try {
                     double multiplier = Double.parseDouble(multiplierInput);
-                    HashMap<String, Double> peerMarks = calculatePeerMarks(multiplier);
 
                     StringBuilder result = new StringBuilder("Peer Marks:\n");
-                    for (String student : peerMarks.keySet()) {
-                        result.append(student)
-                                .append(": ")
-                                .append(String.format("%.2f", peerMarks.get(student)))
-                                .append("\n");
+                    for (String student : studentAverageScores.keySet()) {
+                        double average = studentAverageScores.get(student) / scoreCounts.get(student);
+                        double peerMark = average * multiplier;
+                        result.append(student).append(": ").append(String.format("%.2f", peerMark)).append("\n");
                     }
 
-                    JOptionPane.showMessageDialog(null, result.toString(),
-                            "Peer Marks", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(null, result.toString(), "Peer Marks", JOptionPane.INFORMATION_MESSAGE);
 
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(null, "Invalid multiplier. Please enter a numeric value.");
                 }
-            }
-        });
-
-        // [Driver: kr21130]
-        // [Navigator: ka22205]
-        JButton checkScoresButton = new JButton("Check Zero-Sum Scoring");
-        checkScoresButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (scoresMap.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Please submit scores first!");
-                    return;
-                }
-                checkGrandAverageScores();
             }
         });
 
@@ -184,13 +190,15 @@ public class ScoreInputFrame extends JFrame {
         buttonPanel.add(submitButton);
         buttonPanel.add(calculateAverageButton);
         buttonPanel.add(calculatePeerMarkButton);
-        buttonPanel.add(checkScoresButton);
 
         panel.add(buttonPanel, BorderLayout.SOUTH);
+
         add(panel);
         setVisible(true);
     }
 
+    //[Driver: ka22205]
+    //[Navigator: ep20200]
     public HashMap<String, Double> calculateGrandAverageScores() {
         HashMap<String, Double> studentAverageScores = new HashMap<>();
         HashMap<String, Integer> scoreCounts = new HashMap<>();
@@ -205,21 +213,20 @@ public class ScoreInputFrame extends JFrame {
                     totalScore += score;
                 }
 
-                studentAverageScores.put(toStudent,
-                        studentAverageScores.getOrDefault(toStudent, 0.0) + totalScore);
-                scoreCounts.put(toStudent,
-                        scoreCounts.getOrDefault(toStudent, 0) + scores.length);
+                studentAverageScores.put(toStudent, studentAverageScores.getOrDefault(toStudent, 0.0) + totalScore);
+                scoreCounts.put(toStudent, scoreCounts.getOrDefault(toStudent, 0) + scores.length);
             }
         }
 
         for (String student : studentAverageScores.keySet()) {
-            studentAverageScores.put(student,
-                    studentAverageScores.get(student) / scoreCounts.get(student));
+            studentAverageScores.put(student, studentAverageScores.get(student) / scoreCounts.get(student));
         }
 
         return studentAverageScores;
     }
 
+    //[Driver: ka22205]
+    //[Navigator: ep20200]
     public HashMap<String, Double> calculatePeerMarks(double multiplier) {
         HashMap<String, Double> grandAverages = calculateGrandAverageScores();
         HashMap<String, Double> peerMarks = new HashMap<>();
@@ -230,124 +237,53 @@ public class ScoreInputFrame extends JFrame {
 
         return peerMarks;
     }
-
-
-     // Checks if students' grand average scores comply with zero-sum scoring requirements
-     // Zero-sum rule is violated only when scores exceed 3.5
-     //[Driver: kr21130]
-     //[Navigator: hw24209]
-
-    private void checkGrandAverageScores() {
-        HashMap<String, Double> grandAverages = calculateGrandAverageScores();
-
-        StringBuilder scoresDisplay = new StringBuilder("Student Grand Averages:\n\n");
-        boolean hasZeroSumViolation = false;
-        boolean hasLowScores = false;
-        double totalScore = 0;
-        ArrayList<String> zeroSumViolations = new ArrayList<>();
-        ArrayList<String> lowScores = new ArrayList<>();
-
-        for (String student : grandAverages.keySet()) {
-            double average = grandAverages.get(student);
-            totalScore += average;
-
-            scoresDisplay.append(student)
-                    .append(": ")
-                    .append(String.format("%.2f", average));
-
-            if (average > 3.5) {
-                scoresDisplay.append(" ⚠️"); // Warning indicator for zero-sum violation
-                hasZeroSumViolation = true;
-                zeroSumViolations.add(student);
-            } else if (average < 3.0) {
-                scoresDisplay.append(" ℹ️"); // Information indicator for low score
-                hasLowScores = true;
-                lowScores.add(student);
-            }
-            scoresDisplay.append("\n");
-        }
-
-        scoresDisplay.append("\nTotal sum of scores: ")
-                .append(String.format("%.2f", totalScore))
-                .append("\n");
-//[Driver: kr21130]
-        //[Navigator: hz24472]
-        if (hasZeroSumViolation) {
-            scoresDisplay.append("\nZERO-SUM SCORING METHOD VIOLATION!\n")
-                    .append("The following students have scores above the maximum ")
-                    .append("allowed value of 3.5:\n");
-
-            for (String student : zeroSumViolations) {
-                scoresDisplay.append("- ")
-                        .append(student)
-                        .append(": ")
-                        .append(String.format("%.2f", grandAverages.get(student)))
-                        .append("\n");
-            }
-
-            scoresDisplay.append("\nThis violates the zero-sum scoring method requirements. ")
-                    .append("Please adjust these scores to be at most 3.5 before proceeding.");
-        }
-//[Driver: kr21130]
-        //[Navigator: ka22205]
-        if (hasLowScores) {
-            scoresDisplay.append("\nNOTE: Some students have scores below 3.0:\n");
-
-            for (String student : lowScores) {
-                scoresDisplay.append("- ")
-                        .append(student)
-                        .append(": ")
-                        .append(String.format("%.2f", grandAverages.get(student)))
-                        .append("\n");
-            }
-
-            scoresDisplay.append("\nWhile these low scores don't violate the zero-sum method, ")
-                    .append("you may want to review them for fairness.");
-        }
-
-        JOptionPane.showMessageDialog(null,
-                scoresDisplay.toString(),
-                "Zero-Sum Scoring Method Check",
-                hasZeroSumViolation ? JOptionPane.WARNING_MESSAGE : JOptionPane.INFORMATION_MESSAGE);
-    }
+    
 
     public HashMap<String, HashMap<String, double[]>> getScoresMap() {
         return scoresMap;
     }
 
+    //[Driver: hw24209]
+    //[Navigator: cl24929]
     public void GetScoresMap() {
         String filePath = "PeerEvaluationSystem/data/scores.xlsx";
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Scores");
-
+    
         int rowNum = 0;
-
+    
         Row headerRow = sheet.createRow(rowNum++);
         headerRow.createCell(0).setCellValue("From Student");
         headerRow.createCell(1).setCellValue("To Student");
-        for (int i = 0; i < 5; i++) {
-            headerRow.createCell(i + 2).setCellValue("Score " + (i + 1));
-        }
-
-        for (String fromStudent : scoresMap.keySet()) {
-            HashMap<String, double[]> toMap = scoresMap.get(fromStudent);
-            for (String toStudent : toMap.keySet()) {
-                double[] scores = toMap.get(toStudent);
-                Row row = sheet.createRow(rowNum++);
-
-                row.createCell(0).setCellValue(fromStudent);
-                row.createCell(1).setCellValue(toStudent);
-
-                for (int i = 0; i < scores.length; i++) {
-                    row.createCell(2 + i).setCellValue(scores[i]);
-                }
-            }
-        }
-
-        for (int i = 0; i <= 6; i++) {
-            sheet.autoSizeColumn(i);
-        }
-
+        headerRow.createCell(2).setCellValue("Score 1");
+        headerRow.createCell(3).setCellValue("Score 2");
+        headerRow.createCell(4).setCellValue("Score 3");
+        headerRow.createCell(5).setCellValue("Score 4");
+        headerRow.createCell(6).setCellValue("Score 5");
+    
+         for (String fromStudent : scoresMap.keySet()) {
+             HashMap<String, double[]> toMap = scoresMap.get(fromStudent);
+             for (String toStudent : toMap.keySet()) {
+                 double[] scores = toMap.get(toStudent);
+                 Row row = sheet.createRow(rowNum++);
+    
+                 Cell cellFrom = row.createCell(0);
+                 cellFrom.setCellValue(fromStudent);
+    
+                 Cell cellTo = row.createCell(1);
+                 cellTo.setCellValue(toStudent);
+    
+                 for (int i = 0; i < scores.length; i++) {
+                     Cell scoreCell = row.createCell(2 + i);
+                     scoreCell.setCellValue(scores[i]);
+                 }
+             }
+         }
+    
+         for (int i = 0; i <= 6; i++) {
+             sheet.autoSizeColumn(i);
+         }
+    
         try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
             workbook.write(fileOut);
             workbook.close();
@@ -357,4 +293,5 @@ public class ScoreInputFrame extends JFrame {
             JOptionPane.showMessageDialog(null, "Error saving scores to Excel file.");
         }
     }
+    
 }
